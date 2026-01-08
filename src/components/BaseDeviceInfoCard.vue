@@ -14,9 +14,10 @@
     <el-table :data="data" v-loading="loading" stripe style="width: 100%">
       <el-table-column prop="local_ipv6" label="IPv6 地址">
         <template #default="scope">
-          <code class="ipv6-text">{{ scope.row.local_ipv6 }}</code>
+          <code class="ipv6-text">{{ scope.row.local_ipv6 || "-" }}</code>
         </template>
       </el-table-column>
+
       <el-table-column prop="mac" label="MAC 地址">
         <template #default="scope">
           <code class="mac-highlight">{{ scope.row.mac }}</code>
@@ -28,10 +29,16 @@
   </el-card>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { Refresh } from '@element-plus/icons-vue'
-defineProps(['title', 'data', 'loading'])
+import type {Device, Gateway} from "../api.ts";
+defineProps<{
+  title: string,
+  data: (Device | Gateway)[],
+  loading: boolean
+}>();
 defineEmits(['refresh'])
+
 </script>
 
 <style scoped>

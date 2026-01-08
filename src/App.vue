@@ -8,6 +8,7 @@ interface Page{
   path: string
 }
 const pages : Page[] = [
+  {title: '首页', path:'/'},
   {title: "发现", path: "/scan"},
   /*{title: "设备管理", path: "/device"},
   {title: "网关管理", path: "/gateway"},*/
