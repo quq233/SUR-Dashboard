@@ -1,17 +1,8 @@
 <script setup lang="ts">
 import {Refresh} from "@element-plus/icons-vue";
-import {type Tag} from "./api.ts";
-import {onMounted, type Ref, ref} from "vue";
+import {useDevices} from "./shared.ts";
 
-import {get_tags} from "./api.ts";
-const tags: Ref<Tag[]> = ref([])
-
-const fetchData = async () => {
-  tags.value=await get_tags()
-}
-onMounted(() => {
-  fetchData()
-})
+const { tags } = useDevices();
 
 function editTagByID(tag_id: number) {
   const found = tags.value.find(tag => tag.tag_id === tag_id)

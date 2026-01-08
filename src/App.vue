@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import {onMounted, ref} from 'vue'
 import {useRouter} from "vue-router";
 const router = useRouter()
 
@@ -19,6 +19,14 @@ const handleSelect = (key: string) => {
   //console.log(key, keyPath)
   router.push(key)
 }
+
+import {useDevices} from "./shared.ts";
+
+const { fetchData} = useDevices();
+
+onMounted(() => {
+  fetchData()
+})
 </script>
 
 <template>

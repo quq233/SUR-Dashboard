@@ -40,7 +40,14 @@ async function get_devices(): Promise<Device[]>{
     ]
 }
 async function get_gateways(): Promise<Gateway[]>{
-    return []
+    return [
+        {
+            mac: "6c:b1:33:9f:d9:00",
+            local_ipv6: "fe80::1",
+            tag_id: 0,
+            alias: "主路由",
+        }
+    ]
 }
 
 
