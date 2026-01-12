@@ -50,3 +50,11 @@ export function useDevices() {
         find_gateway_by_mac
     };
 }
+
+export interface DialogState{
+    visible: boolean,
+    isEdit: boolean,
+    title: string,
+    form: any,
+    _is_gateway: boolean,
+}

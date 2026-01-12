@@ -1,123 +1,71 @@
 <script setup lang="ts">
-import {type Device, deviceApi, type Gateway, gatewayApi} from "./api.ts";
 import {type Ref, ref} from "vue";
 import BaseDeviceInfoCard from "./components/BaseDeviceInfoCard.vue";
-import {useDevices} from "./shared.ts";
-import BaseDeviceInfoDialog from "./components/BaseDeviceInfoDialog.vue";
-import {Refresh} from "@element-plus/icons-vue"; // 需要安装 @element-plus/icons-vue
+import {type DialogState, useDevices} from "./shared.ts";
+import {Refresh} from "@element-plus/icons-vue";
+import UniformedInfoDialog from "./components/UniformedInfoDialog.vue"; // 需要安装 @element-plus/icons-vue
 
-const { devices, loading, fetchData, find_device_by_mac, gateways,neighbors,tags } = useDevices();
+const { devices, loading, fetchData, find_device_by_mac,find_gateway_by_mac, gateways,neighbors } = useDevices();
 
-const editDeviceDialogVisible = ref(false)
-const deviceForm: Ref<Device|null> = ref(null)
-const form: Ref<any> = ref({})
 
-function edit_ipv6_device(mac: string) {
+const dialogState: Ref<DialogState>=ref({
+  visible: false,isEdit: false,title: "",form: undefined,_is_gateway: false,
+})
+
+function editBaseDevice(mac: string, isGateway: boolean) {
   console.log("search "+mac)
-  const found = find_device_by_mac(mac);
-  // 如果找到，则进行真正的深拷贝
+  const found = isGateway ? find_gateway_by_mac(mac) : find_device_by_mac(mac);
   if (found){
-    deviceForm.value = { ...found };
-    console.log("found "+deviceForm.value?.mac)
-    editDeviceDialogVisible.value = true
+    console.log(found.tag_id)
+    dialogState.value = {
+      visible: true,
+      isEdit: true,
+      title: "编辑",
+      form : {...found},
+      _is_gateway : isGateway,
+    }
   }
 }
 
-const addDeviceDialogVisible = ref(false)
 function addDeviceFromNeigh(mac: string, local_ipv6: string) {
-  form.value = {
-    mac: mac,
-    tag_id: 0,
-    alias: "",
-    local_ipv6: local_ipv6,
-    is_gateway: 0,
+  dialogState.value = {
+    visible: true,
+    isEdit: false,
+    title: "添加",
+    form: {
+      mac: mac,
+      tag_id: 0,
+      alias: "",
+      local_ipv6: local_ipv6,
+    },
+    _is_gateway: false,
   }
-  addDeviceDialogVisible.value = true
-}
-const addCustomDialogVisible = ref(false)
-function addCustom(){
-  form.value = {
-    mac: "",
-    tag_id: 0,
-    alias: "",
-    local_ipv6: "",
-    is_gateway: 0,
-  }
-  addCustomDialogVisible.value = true
 }
 
-const myNewGateway = {
-  mac: "00:11:22:33:44:55",
-  tag_id: 1,
-  alias: "客厅网关",
-  local_ipv6: "fe80::1",
-  is_gateway: 0,
-};
+function addCustom(){
+  dialogState.value = {
+    visible: true,
+    isEdit: false,
+    title: "添加",
+    form: {
+      mac: "",
+      tag_id: 0,
+      alias: "",
+      local_ipv6: "",
+      is_gateway: 0,
+    },
+    _is_gateway : false,
+  }
+}
+
 </script>
 
 <template>
-  <!--添加自定义设备-->
-  <BaseDeviceInfoDialog
-      :form="form!"
-      :showDialog="addCustomDialogVisible"
-      :handleCancel="() => {addCustomDialogVisible = false}"
-      :handleSubmit="() => {
-        console.log(form!.value);
-        if(form.is_gateway==0){
-          //Gateway
-          gatewayApi.create(myNewGateway)
-        }
-        else
-          deviceApi.create(form.value)
-      }"
-      title="编辑"
-      :isEdit="true"
-  />
-  <!--编辑现有设备-->
-  <BaseDeviceInfoDialog
-      :form="deviceForm!"
-      :showDialog="editDeviceDialogVisible"
-      :handleCancel="() => {editDeviceDialogVisible=false}"
-      :handleSubmit="() => {
-        deviceApi.update(deviceForm!.mac,deviceForm!)
-      }"
-      title="编辑"
-      :isEdit="true"
-  />
-<!--  <el-dialog v-model="editDeviceDialogVisible" title="Shipping address" width="500">
-    <el-form :model="deviceForm">
-      <el-form-item label="mac" :label-width="formLabelWidth">
-        <el-input v-model="deviceForm!.mac" autocomplete="off" />
-      </el-form-item>
-      <el-form-item label="tag" :label-width="formLabelWidth">
-        <el-select v-model="deviceForm!.tag_id" placeholder="选择tag">
-          <el-option v-for="tag in tags" :label="tag.alias" :value="tag.tag_id"/>
-        </el-select>
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="editDeviceDialogVisible = false">Cancel</el-button>
-        <el-button type="primary" @click="editDeviceDialogVisible = false">
-          Confirm
-        </el-button>
-      </div>
-    </template>
-  </el-dialog>-->
-
-
-  <!--从neigh添加到设备/网关-->
-  <BaseDeviceInfoDialog
-      title="添加设备/网关"
-      :form="form!"
-      :showDialog="addDeviceDialogVisible"
-      :handleCancel="() => {addDeviceDialogVisible=false}"
-      :handleSubmit="() => {
-
-      }"
-      :isEdit="true"
+  <UniformedInfoDialog
+      :dialogState="dialogState"
+      :handleClose="() => {dialogState.visible=false}"
   >
-  </BaseDeviceInfoDialog>
+  </UniformedInfoDialog>
 
   <el-col class="container">
     <BaseDeviceInfoCard
@@ -139,12 +87,12 @@ const myNewGateway = {
           </template>
         </el-table-column>
         <el-table-column fixed="right" label="操作" min-width="120">
-        <template #default="scope">
-          <el-button @click="edit_ipv6_device(scope.row.mac)">
-            编辑
-          </el-button>
-        </template>
-      </el-table-column>
+          <template #default="scope">
+            <el-button @click="editBaseDevice(scope.row.mac,false)">
+              编辑
+            </el-button>
+          </template>
+        </el-table-column>
       </template>
     </BaseDeviceInfoCard>
 
@@ -159,6 +107,14 @@ const myNewGateway = {
         <el-table-column prop="tag_id" label="标签">
           <template #default="scope">
             {{ scope.row.tag_id }}
+          </template>
+        </el-table-column>
+
+        <el-table-column fixed="right" label="操作" min-width="120">
+          <template #default="scope">
+            <el-button @click="editBaseDevice(scope.row.mac,true)">
+              编辑
+            </el-button>
           </template>
         </el-table-column>
 
