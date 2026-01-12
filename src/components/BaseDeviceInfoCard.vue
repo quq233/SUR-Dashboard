@@ -31,10 +31,10 @@
 
 <script setup lang="ts">
 import { Refresh } from '@element-plus/icons-vue'
-import type {Device, Gateway} from "../api.ts";
+import type {Device, Gateway, ipv6Neighbor} from "../api.ts";
 defineProps<{
   title: string,
-  data: (Device | Gateway)[],
+  data: (Device | Gateway | ipv6Neighbor)[],
   loading: boolean
 }>();
 defineEmits(['refresh'])

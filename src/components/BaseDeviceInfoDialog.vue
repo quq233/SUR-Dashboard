@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {useDevices} from "../shared.ts";
-import type {Device, Gateway} from "../api.ts";
 
-const { devices, loading, fetchData, find_device_by_mac, gateways,neighbors,tags } = useDevices();
+
+const {tags } = useDevices();
 
 defineProps<{
   showDialog: boolean,
@@ -10,6 +10,7 @@ defineProps<{
   form: any,
   handleCancel: () => void,
   handleSubmit: () => void,
+  isEdit: boolean,
 }>();
 const formLabelWidth = '140px'
 

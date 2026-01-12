@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import {type Device, type Gateway} from "./api.ts";
-import {onMounted, type Ref, ref} from "vue";
+import {type Device, deviceApi, type Gateway, gatewayApi} from "./api.ts";
+import {type Ref, ref} from "vue";
 import BaseDeviceInfoCard from "./components/BaseDeviceInfoCard.vue";
 import {useDevices} from "./shared.ts";
-import BaseDeviceInfoDialog from "./components/BaseDeviceInfoDialog.vue"; // 需要安装 @element-plus/icons-vue
+import BaseDeviceInfoDialog from "./components/BaseDeviceInfoDialog.vue";
+import {Refresh} from "@element-plus/icons-vue"; // 需要安装 @element-plus/icons-vue
 
 const { devices, loading, fetchData, find_device_by_mac, gateways,neighbors,tags } = useDevices();
 
 const editDeviceDialogVisible = ref(false)
 const deviceForm: Ref<Device|null> = ref(null)
 const form: Ref<any> = ref({})
-const formLabelWidth = '140px'
 
 function edit_ipv6_device(mac: string) {
   console.log("search "+mac)
@@ -34,15 +34,55 @@ function addDeviceFromNeigh(mac: string, local_ipv6: string) {
   }
   addDeviceDialogVisible.value = true
 }
+const addCustomDialogVisible = ref(false)
+function addCustom(){
+  form.value = {
+    mac: "",
+    tag_id: 0,
+    alias: "",
+    local_ipv6: "",
+    is_gateway: 0,
+  }
+  addCustomDialogVisible.value = true
+}
+
+const myNewGateway = {
+  mac: "00:11:22:33:44:55",
+  tag_id: 1,
+  alias: "客厅网关",
+  local_ipv6: "fe80::1",
+  is_gateway: 0,
+};
 </script>
 
 <template>
+  <!--添加自定义设备-->
+  <BaseDeviceInfoDialog
+      :form="form!"
+      :showDialog="addCustomDialogVisible"
+      :handleCancel="() => {addCustomDialogVisible = false}"
+      :handleSubmit="() => {
+        console.log(form!.value);
+        if(form.is_gateway==0){
+          //Gateway
+          gatewayApi.create(myNewGateway)
+        }
+        else
+          deviceApi.create(form.value)
+      }"
+      title="编辑"
+      :isEdit="true"
+  />
   <!--编辑现有设备-->
   <BaseDeviceInfoDialog
       :form="deviceForm!"
       :showDialog="editDeviceDialogVisible"
       :handleCancel="() => {editDeviceDialogVisible=false}"
-      :handleSubmit="() => {}"
+      :handleSubmit="() => {
+        deviceApi.update(deviceForm!.mac,deviceForm!)
+      }"
+      title="编辑"
+      :isEdit="true"
   />
 <!--  <el-dialog v-model="editDeviceDialogVisible" title="Shipping address" width="500">
     <el-form :model="deviceForm">
@@ -75,6 +115,7 @@ function addDeviceFromNeigh(mac: string, local_ipv6: string) {
       :handleSubmit="() => {
 
       }"
+      :isEdit="true"
   >
   </BaseDeviceInfoDialog>
 
@@ -85,6 +126,11 @@ function addDeviceFromNeigh(mac: string, local_ipv6: string) {
         :loading="loading"
         @refresh="fetchData"
     >
+      <template #actions>
+        <el-button type="primary" :icon="Refresh" :loading="loading" @click="addCustom">
+          添加
+        </el-button>
+      </template>
       <template #extra-columns>
         <el-table-column prop="alias" label="名称"/>
         <el-table-column prop="tag_id" label="标签">
