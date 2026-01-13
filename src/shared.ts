@@ -14,7 +14,7 @@ const loading = ref(false);
 // 自动维护的哈希表
 const deviceMap = computed(() => new Map(devices.value.map(d => [d.mac, d])));
 const gatewayMap = computed(() => new Map(gateways.value.map(g => [g.mac, g])));
-
+const tagMap = computed(() => new Map(tags.value.map(t => [t.tag_id,t])))
 // 内部使用的数据获取函数
 const fetchData = async () => {
     if (loading.value) return; // 防止重复请求
@@ -37,7 +37,7 @@ export function useDevices() {
     // 提供给外部的方法
     const find_device_by_mac = (mac: string) => deviceMap.value.get(mac);
     const find_gateway_by_mac = (mac: string) => gatewayMap.value.get(mac);
-
+    const find_tag_by_id = (tag_id:number) => tagMap.value.get(tag_id);
     // 返回组件需要用到的所有东西
     return {
         neighbors,
@@ -47,7 +47,8 @@ export function useDevices() {
         loading,
         fetchData,
         find_device_by_mac,
-        find_gateway_by_mac
+        find_gateway_by_mac,
+        find_tag_by_id
     };
 }
 
@@ -57,4 +58,11 @@ export interface DialogState{
     title: string,
     form: any,
     _is_gateway: boolean,
+}
+
+export interface TagDialogState {
+    visible: boolean,
+    form: any,
+    isEdit: boolean,
+    title: string,
 }

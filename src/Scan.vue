@@ -2,11 +2,12 @@
 import {type Ref, ref} from "vue";
 import BaseDeviceInfoCard from "./components/BaseDeviceInfoCard.vue";
 import {type DialogState, useDevices} from "./shared.ts";
-import {Refresh} from "@element-plus/icons-vue";
-import UniformedInfoDialog from "./components/UniformedInfoDialog.vue"; // 需要安装 @element-plus/icons-vue
 
-const { devices, loading, fetchData, find_device_by_mac,find_gateway_by_mac, gateways,neighbors } = useDevices();
+import UniformedInfoDialog from "./components/UniformedInfoDialog.vue";
 
+const { devices, loading, fetchData, find_device_by_mac,find_gateway_by_mac, gateways,find_tag_by_id,neighbors } = useDevices();
+import {Plus } from '@element-plus/icons-vue'
+import GetMacCard from "./components/GetMacCard.vue";
 
 const dialogState: Ref<DialogState>=ref({
   visible: false,isEdit: false,title: "",form: undefined,_is_gateway: false,
@@ -42,7 +43,7 @@ function addDeviceFromNeigh(mac: string, local_ipv6: string) {
   }
 }
 
-function addCustom(){
+function addCustom(is_gateway: boolean=false) {
   dialogState.value = {
     visible: true,
     isEdit: false,
@@ -51,12 +52,12 @@ function addCustom(){
       mac: "",
       tag_id: 0,
       alias: "",
-      local_ipv6: "",
-      is_gateway: 0,
+      local_ipv6: ""
     },
-    _is_gateway : false,
+    _is_gateway : is_gateway,
   }
 }
+
 
 </script>
 
@@ -72,10 +73,9 @@ function addCustom(){
         title="IPv6设备"
         :data="devices"
         :loading="loading"
-        @refresh="fetchData"
     >
       <template #actions>
-        <el-button type="primary" :icon="Refresh" :loading="loading" @click="addCustom">
+        <el-button type="primary" :icon="Plus" :loading="loading" @click="addCustom(false)">
           添加
         </el-button>
       </template>
@@ -83,7 +83,7 @@ function addCustom(){
         <el-table-column prop="alias" label="名称"/>
         <el-table-column prop="tag_id" label="标签">
           <template #default="scope">
-            {{ scope.row.tag_id }}
+            {{ find_tag_by_id(scope.row.tag_id)?.alias ?? "未知TagID："+scope.row.tag_id }}
           </template>
         </el-table-column>
         <el-table-column fixed="right" label="操作" min-width="120">
@@ -100,13 +100,17 @@ function addCustom(){
         title="IPv6网关"
         :data="gateways"
         :loading="loading"
-        @refresh="fetchData"
     >
+      <template #actions>
+        <el-button type="primary" :icon="Plus" :loading="loading" @click="addCustom(true)">
+          添加
+        </el-button>
+      </template>
       <template #extra-columns>
         <el-table-column prop="alias" label="名称"/>
         <el-table-column prop="tag_id" label="标签">
           <template #default="scope">
-            {{ scope.row.tag_id }}
+            {{ find_tag_by_id(scope.row.tag_id)?.alias ?? "unknown tag_id "+scope.row.tag_id }}
           </template>
         </el-table-column>
 
@@ -120,6 +124,9 @@ function addCustom(){
 
       </template>
     </BaseDeviceInfoCard>
+
+
+    <GetMacCard/>
 
     <BaseDeviceInfoCard
         title="网络中活跃的 IPv6 设备"

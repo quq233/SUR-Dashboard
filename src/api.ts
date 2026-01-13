@@ -8,7 +8,7 @@ const api = axios.create({
 
 // --- 类型定义 (与后端保持同步) ---
 export interface Tag {
-    tag_id?: number;
+    tag_id: number;
     alias: string;
 }
 
@@ -37,8 +37,8 @@ export interface ipv6Neighbor {
 export const tagApi = {
     getAll: () => api.get<Tag[]>('/tags/').then(res => res.data),
     create: (tag: Tag) => api.post<Tag>('/tags/', tag).then(res => res.data),
-    update: (id: number, tag: Tag) => api.put<Tag>(`/tags/${id}`, tag).then(res => res.data),
-    delete: (id: number) => api.delete(`/tags/${id}`).then(res => res.data),
+    update: (id: string, tag: Tag) => api.put<Tag>(`/tags/${id}`, tag).then(res => res.data),
+    delete: (id: string) => api.delete(`/tags/${id}`).then(res => res.data),
 };
 
 /**
@@ -61,19 +61,14 @@ export const gatewayApi = {
     delete: (mac: string) => api.delete(`/gateways/${mac}`).then(res => res.data),
 };
 
-/**
- * 特殊功能：获取邻居 (如果后端没写，建议在 FastAPI 增加该接口)
- * 目前先保留逻辑，你可以根据需要对接
- */
-export async function get_ipv6_neighbors(): Promise<ipv6Neighbor[]> {
-    // 假设你后端有个接口叫 GET /neighbors/
-    // const res = await api.get<ipv6Neighbor[]>('/neighbors/');
-    // return res.data;
+export const getMacFromIPv4 = async (ipv4: string) => {
+    const res = await api.get<string>(`/ipv4/mac/?ip=${ipv4}`);
+    return res.data;
+}
 
-    // 暂时 mock
-    return [
-        { local_ipv6: "fe80::cbe:ccb7:69f7:8e16", mac: "6c:b1:33:9f:d9:fc" }
-    ];
+export async function get_ipv6_neighbors(): Promise<ipv6Neighbor[]> {
+    const res = await api.get<ipv6Neighbor[]>('/neighbors/');
+    return res.data;
 }
 
 // 为了兼容你原有的导出格式

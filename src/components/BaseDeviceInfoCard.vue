@@ -3,11 +3,13 @@
     <template #header>
       <div class="card-header">
         <span class="title">{{ title }}</span>
-        <slot name="actions">
+        <div>
+          <slot name="actions"></slot>
           <el-button type="primary" :icon="Refresh" :loading="loading" @click="$emit('refresh')">
             刷新
           </el-button>
-        </slot>
+        </div>
+
       </div>
     </template>
 
