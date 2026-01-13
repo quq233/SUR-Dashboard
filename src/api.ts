@@ -30,7 +30,20 @@ export interface ipv6Neighbor {
 }
 
 // --- API 请求实现 ---
+// Daemon 控制相关 API
+export const broadcastApi = {
+    // 获取广播任务状态
+    getStatus: () => api.get('/broadcast/'),
 
+    // 启动广播任务
+    start: () => api.get('/broadcast/start'),
+
+    // 停止广播任务
+    stop: () => api.get('/broadcast/stop'),
+
+    // 立即触发广播
+    triggerNow: () => api.get('/broadcast/trigger_now'),
+};
 /**
  * TAG 标签管理
  */

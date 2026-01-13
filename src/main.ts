@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import './style.css'
-import Index from "./components/Index.vue";
+import Index from "./Index.vue";
 import App from './App.vue'
 import Scan from './Scan.vue'
 import Tags from "./Tags.vue";
