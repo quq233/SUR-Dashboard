@@ -85,12 +85,12 @@ async function del() {
       <el-form-item label="DNS 服务器">
         <div style="width: 100%;">
           <div
-              v-for="(dns, index) in localForm.dns"
+              v-for="(_, index) in localForm.dns"
               :key="index"
               style="display: flex; margin-bottom: 10px; align-items: center;"
           >
             <el-input
-                v-model="localForm.dns[index]"
+                v-model="localForm.dns[index as number]"
                 placeholder="例如: 2400:3200::1"
                 style="flex: 1;"
             >
@@ -99,7 +99,7 @@ async function del() {
             <el-button
                 :icon="Delete"
                 type="danger"
-                @click="removeDns(index)"
+                @click="removeDns(index as number)"
                 style="margin-left: 10px;"
                 circle
             />
