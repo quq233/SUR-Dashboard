@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
-import { useDevices } from "../shared.ts";
+import {computed, ref, watch} from "vue";
+import {useDevices, validateIPv6} from "../shared.ts";
 import { tagApi } from "../api.ts";
 import type { TagDialogState } from "../shared.ts";
 import { Plus, Delete } from '@element-plus/icons-vue';
+import type {FormRules} from "element-plus";
 
 const props = defineProps<{
   dialogState: TagDialogState,
@@ -37,6 +38,24 @@ function addDns() {
 function removeDns(index: number) {
   localForm.value.dns.splice(index, 1);
 }
+const validateLocalIPv6 = (_rule: any, value: any, callback: any) => {
+  if (!validateIPv6(value)) {
+    callback(new Error('IPv6地址格式不正确'));
+  } else {
+    callback();
+  }
+};
+const rules = computed<FormRules>(() => {
+  const dnsList = localForm.value.dns || [];
+
+  return dnsList.reduce((acc: any, _: any, index: number) => ({
+    ...acc,
+    [`dns.${index}`]: [
+      { required: true, message: '请输入DNS服务器地址' },
+      { validator: validateLocalIPv6 }
+    ]
+  }), {} as FormRules);
+});
 
 async function submit() {
   try {
@@ -72,7 +91,7 @@ async function del() {
       :title="dialogState.title"
       width="600px"
   >
-    <el-form :model="localForm" label-width="100px">
+    <el-form :model="localForm" label-width="100px" :rules="rules">
       <el-form-item label="Tag ID">
         <el-input v-model.number="localForm.tag_id" :disabled="dialogState.isEdit" />
       </el-form-item>
@@ -89,17 +108,21 @@ async function del() {
               :key="index"
               style="display: flex; margin-bottom: 10px; align-items: center;"
           >
-            <el-input
-                v-model="localForm.dns[index as number]"
-                placeholder="例如: 2400:3200::1"
-                style="flex: 1;"
+            <el-form-item
+                :prop="`dns.${index}`"
+                style="flex: 1; margin-bottom: 0;"
             >
-              <template #prepend>DNS {{ index as number + 1 }}</template>
-            </el-input>
+              <el-input
+                  v-model="localForm.dns[index]"
+                  placeholder="例如: 2400:3200::1"
+              >
+                <template #prepend>DNS {{ index + 1 }}</template>
+              </el-input>
+            </el-form-item>
             <el-button
                 :icon="Delete"
                 type="danger"
-                @click="removeDns(index as number)"
+                @click="removeDns(index)"
                 style="margin-left: 10px;"
                 circle
             />
@@ -108,7 +131,7 @@ async function del() {
           <el-button
               :icon="Plus"
               @click="addDns"
-              style="width: 100%;"
+              style="width: 100%;margin-top: 10px;"
               type="primary"
               plain
           >

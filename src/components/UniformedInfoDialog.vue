@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
-import { type DialogState, useDevices } from "../shared.ts";
+import { ref, watch, computed } from "vue";
+import {type DialogState, useDevices, validateIPv6} from "../shared.ts";
 import { deviceApi, gatewayApi } from "../api.ts";
+import type { FormInstance, FormRules } from 'element-plus';
 
 const props = defineProps<{
   dialogState: DialogState,
@@ -10,21 +11,75 @@ const props = defineProps<{
 
 const { fetchData, tags } = useDevices();
 
-// 1. 本地表单状态：用于存储当前编辑的内容，避免直接修改 Props
+// 表单引用
+const formRef = ref<FormInstance>();
+
+// 本地表单状态
 const localForm = ref<any>({});
 const localIsGateway = ref(false);
 
-// 2. 深度监听 Props 变化：当父组件打开对话框或切换数据时，同步到本地
+// IPv6 验证函数
+const validateLocalIPv6 = (_rule: any, value: any, callback: any) => {
+  if (!localIsGateway.value) {
+    callback();
+    return;
+  }
+  if (!value) {
+    callback(new Error('请输入IPv6地址'));
+    return;
+  }
+
+  if (!validateIPv6(value)) {
+    callback(new Error('IPv6地址格式不正确'));
+  } else {
+    callback();
+  }
+};
+
+// 验证规则 - 移除所有 trigger，只在手动调用 validate 时触发
+const rules = computed<FormRules>(() => ({
+  mac: [
+    { required: true, message: '请输入MAC地址' },
+    {
+      pattern: /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/,
+      message: 'MAC地址格式不正确（例如：AA:BB:CC:DD:EE:FF）'
+    }
+  ],
+  alias: [
+    { required: true, message: '请输入名称' }
+  ],
+  tag_id: [
+    { required: true, message: '请选择Tag' }
+  ],
+  local_ipv6: localIsGateway.value ? [
+    { required: true, message: '请输入IPv6地址' },
+    { validator: validateLocalIPv6 }
+  ] : []
+}));
+
 watch(() => props.dialogState, (newVal) => {
   console.log(newVal);
   if (newVal.visible && newVal.form) {
-    // 浅拷贝表单数据，防止直接污染父组件
     localForm.value = { ...newVal.form };
     localIsGateway.value = newVal._is_gateway;
+    // 重要：清除所有验证状态
+    setTimeout(() => {
+      formRef.value?.clearValidate();
+    }, 0);
   }
 }, { deep: true, immediate: true });
 
 async function submit() {
+  // 先验证表单
+  if (!formRef.value) return;
+
+  try {
+    await formRef.value.validate();
+  } catch (error) {
+    console.log('验证失败:', error);
+    return;
+  }
+
   const endpoint = localIsGateway.value ? gatewayApi : deviceApi;
 
   try {
@@ -34,16 +89,17 @@ async function submit() {
       await endpoint.create(localForm.value);
     }
     props.handleClose();
-    await fetchData(); // 刷新列表
+    await fetchData();
   } catch (error) {
     console.error("提交失败:", error);
   }
 }
+
 async function del() {
   const endpoint = localIsGateway.value ? gatewayApi : deviceApi;
   await endpoint.delete(localForm.value.mac);
   props.handleClose();
-  await fetchData(); // 刷新列表
+  await fetchData();
 }
 </script>
 
@@ -54,20 +110,29 @@ async function del() {
       :title="dialogState.title"
       width="500px"
   >
-    <el-form :model="localForm" label-width="80px">
-      <el-form-item v-if="localIsGateway && 'local_ipv6' in localForm" label="IPv6">
+    <el-form
+        ref="formRef"
+        :model="localForm"
+        :rules="rules"
+        label-width="80px"
+    >
+      <el-form-item
+          v-if="localIsGateway && 'local_ipv6' in localForm"
+          label="IPv6"
+          prop="local_ipv6"
+      >
         <el-input v-model="localForm.local_ipv6" />
       </el-form-item>
 
-      <el-form-item label="MAC">
+      <el-form-item label="MAC" prop="mac">
         <el-input v-model="localForm.mac" :disabled="dialogState.isEdit" />
       </el-form-item>
 
-      <el-form-item label="名称">
+      <el-form-item label="名称" prop="alias">
         <el-input v-model="localForm.alias" />
       </el-form-item>
 
-      <el-form-item label="Tag">
+      <el-form-item label="Tag" prop="tag_id">
         <el-select v-model="localForm.tag_id" placeholder="选择Tag">
           <el-option v-for="tag in tags" :key="tag.tag_id" :label="tag.alias" :value="tag.tag_id" />
         </el-select>
