@@ -94,7 +94,7 @@ async function del() {
                 placeholder="例如: 2400:3200::1"
                 style="flex: 1;"
             >
-              <template #prepend>DNS {{ index + 1 }}</template>
+              <template #prepend>DNS {{ index as number + 1 }}</template>
             </el-input>
             <el-button
                 :icon="Delete"
