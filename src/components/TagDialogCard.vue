@@ -116,13 +116,13 @@ async function del() {
                   v-model="localForm.dns[index]"
                   placeholder="例如: 2400:3200::1"
               >
-                <template #prepend>DNS {{ index + 1 }}</template>
+                <template #prepend>DNS {{ index as number + 1 }}</template>
               </el-input>
             </el-form-item>
             <el-button
                 :icon="Delete"
                 type="danger"
-                @click="removeDns(index)"
+                @click="removeDns(index as number)"
                 style="margin-left: 10px;"
                 circle
             />
