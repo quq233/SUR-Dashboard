@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*'  # 触发条件：推送以 v 开头的 tag
+      - 'v*'
       
   workflow_dispatch:
     inputs:
@@ -16,7 +16,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # 必须开启权限才能创建 Release
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,7 +38,6 @@ jobs:
       - name: Create and Upload Release
         uses: softprops/action-gh-release@v2
         with:
-          # 如果是 tag 触发，使用 tag 名；如果是手动触发，使用输入的版本号
           tag_name: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.version || github.ref_name }}
           name: Release ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.version || github.ref_name }}
           files: dist.zip
@@ -46,25 +45,3 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: zip -r dist.zip dist  # 把 dist 文件夹压缩成 zip 文件，便于上传
-
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub 自动提供的 token
-        with:
-          tag_name: ${{ github.ref }}  # tag 名，如 v1.0.0
-          release_name: Release ${{ github.ref }}  # release 标题
-          draft: false  # 不是草稿，直接发布
-          prerelease: false  # 不是预发布
-
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}  # 从上一步获取
-          asset_path: ./dist.zip  # 要上传的文件
-          asset_name: dist.zip  # 文件名
-          asset_content_type: application/zip  # 文件类型
