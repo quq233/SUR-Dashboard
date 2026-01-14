@@ -16,7 +16,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest  # 使用 GitHub 的 Linux 服务器
-
+    permissions: # 添加这部分
+      contents: write  # 允许创建 Release
     steps:
       - name: Checkout code
         uses: actions/checkout@v4  # 下载你的代码
