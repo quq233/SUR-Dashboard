@@ -10,6 +10,7 @@ const api = axios.create({
 export interface Tag {
     tag_id: number;
     alias: string;
+    dns: string[];
 }
 
 export interface BaseDevice {

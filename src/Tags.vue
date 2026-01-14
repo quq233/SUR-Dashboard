@@ -7,8 +7,12 @@ import {type Ref, ref} from "vue";
 const { tags } = useDevices();
 
 const tagDialogState: Ref<TagDialogState> = ref({
-  visible: false,isEdit: false,title: "",form: undefined
+  visible: false,
+  isEdit: false,
+  title: "",
+  form: undefined
 })
+
 function editTagByID(tag_id: number) {
   const found = tags.value.find(tag => tag.tag_id === tag_id)
   if (found){
@@ -19,10 +23,12 @@ function editTagByID(tag_id: number) {
       form: {
         tag_id: found.tag_id,
         alias: found.alias,
+        dns: [...found.dns], // 深拷贝数组
       }
     }
   }
 }
+
 function addTag() {
   tagDialogState.value={
     visible: true,
@@ -31,6 +37,7 @@ function addTag() {
     form: {
       tag_id: 0,
       alias: "",
+      dns: ["2400:3200::1"], // 默认 DNS
     }
   }
 }
@@ -48,11 +55,9 @@ function addTag() {
       <div class="card-header">
         <span class="title">标签管理</span>
         <slot name="actions">
-
           <el-button type="primary" :icon="Refresh" @click="addTag">
             添加
           </el-button>
-
           <el-button type="primary" :icon="Refresh" @click="$emit('refresh')">
             刷新
           </el-button>
@@ -60,20 +65,37 @@ function addTag() {
       </div>
     </template>
 
-    <el-table :data="tags"  stripe style="width: 100%">
-      <el-table-column prop="local_ipv6" label="ID">
+    <el-table :data="tags" stripe style="width: 100%">
+      <el-table-column prop="tag_id" label="ID" width="80">
         <template #default="scope">
           <code class="ipv6-text">{{ scope.row.tag_id }}</code>
         </template>
       </el-table-column>
 
-      <el-table-column prop="mac" label="名称">
+      <el-table-column prop="alias" label="名称" width="150">
         <template #default="scope">
-          <code class="mac-highlight">{{ scope.row.alias }}</code>
+          <span>{{ scope.row.alias }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column fixed="right" label="操作" min-width="120">
+      <!-- 新增 DNS 列 -->
+      <el-table-column prop="dns" label="DNS 服务器" min-width="200">
+        <template #default="scope">
+          <el-tag
+              v-for="(dns, index) in scope.row.dns"
+              :key="index"
+              size="default"
+              style="margin-right: 5px; margin-bottom: 5px;"
+          >
+            {{ dns }}
+          </el-tag>
+          <span v-if="!scope.row.dns || scope.row.dns.length === 0" style="color: #999;">
+            未设置
+          </span>
+        </template>
+      </el-table-column>
+
+      <el-table-column fixed="right" label="操作" width="120">
         <template #default="scope">
           <el-button @click="editTagByID(scope.row.tag_id)">
             编辑
@@ -85,5 +107,8 @@ function addTag() {
 </template>
 
 <style scoped>
-
+.ipv6-text {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+}
 </style>
