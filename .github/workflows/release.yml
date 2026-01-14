@@ -1,0 +1,42 @@
+name: Build and Release Frontend
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        run: npm install
+        # 如果用 pnpm: 
+        # run: |
+        #   npm install -g pnpm
+        #   pnpm install
+      
+      - name: Build
+        run: npm run build
+      
+      - name: Create zip
+        run: |
+          cd dist
+          zip -r ../frontend.zip .
+          cd ..
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: frontend.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
