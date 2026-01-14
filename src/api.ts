@@ -1,8 +1,18 @@
 import axios from 'axios';
 
+const isDev = import.meta.env.DEV;
+const getBaseURL = () => {
+    if (isDev) {
+        console.log("dev mode")
+        return 'http://192.168.1.114:8000'; // IDE 开发时手动指向后端
+    }
+    // 当 FastAPI 挂载前端时，window.location.origin 就是后端的地址
+    // 使用相对路径 '/' 可以自动匹配后端
+    return '/api';
+};
 // --- 基础配置 ---
 const api = axios.create({
-    baseURL: 'http://127.0.0.1:8000', // 你的 FastAPI 地址
+    baseURL: getBaseURL(), // 你的 FastAPI 地址
     timeout: 5000,
 });
 

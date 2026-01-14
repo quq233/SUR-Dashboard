@@ -39,10 +39,10 @@ const copyMac = (text: string) => {
 <template>
   <el-card shadow="never" class="table-card">
     <template #header>
-      <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+      <div class="card-header">
         <div>
-          <span style="font-weight: bold; margin-right: 8px;">获取设备的 Mac</span>
-          <span style="font-size: 12px; color: var(--el-text-color-secondary);">输入 IPv4 地址自动探测（请确保设备已唤醒）</span>
+          <span class="title">获取设备的 Mac </span>
+          <span style="font-size: 12px; color: var(--el-text-color-secondary);">（请确保设备已唤醒）</span>
         </div>
       </div>
     </template>
@@ -82,5 +82,6 @@ const copyMac = (text: string) => {
 </template>
 
 <style scoped>
-
+.title { font-size: 18px; font-weight: 600; color: #303133; }
+.card-header { display: flex; justify-content: space-between; align-items: center; }
 </style>

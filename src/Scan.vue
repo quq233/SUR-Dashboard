@@ -136,7 +136,7 @@ function addCustom(is_gateway: boolean=false) {
       <template #extra-columns>
         <el-table-column fixed="right" label="操作" min-width="120">
           <template #default="scope">
-            <el-button v-if="!find_device_by_mac(scope.row.mac)" @click="addDeviceFromNeigh(scope.row.mac,scope.row.local_ipv6)">
+            <el-button v-if="!find_device_by_mac(scope.row.mac) && !find_gateway_by_mac(scope.row.mac)" @click="addDeviceFromNeigh(scope.row.mac,scope.row.local_ipv6)">
               添加
             </el-button>
             <span v-else>-</span>
