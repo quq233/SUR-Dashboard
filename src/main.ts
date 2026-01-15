@@ -9,7 +9,8 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 const routes = [
     { path: '/scan', component: Scan },
     { path: '/', component: Index },
-    { path: '/tag', component: Tags }
+    { path: '/tag', component: Tags },
+    { path: '/login', component: Login },
 ]
 
 const router = createRouter({
@@ -19,6 +20,7 @@ const router = createRouter({
 
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import Login from "./Login.vue";
 
 
 const app = createApp(App)

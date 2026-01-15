@@ -9,9 +9,7 @@ interface Page{
 }
 const pages : Page[] = [
   {title: '首页', path:'/'},
-  {title: "发现", path: "/scan"},
-  /*{title: "设备管理", path: "/device"},
-  {title: "网关管理", path: "/gateway"},*/
+  {title: "设备&网关管理", path: "/scan"},
   {title: "标签管理", path: "/tag"},
 ]
 const activeIndex = ref(pages[0]?.path)
@@ -20,7 +18,8 @@ const handleSelect = (key: string) => {
   router.push(key)
 }
 
-import {useDevices} from "./shared.ts";
+import {authed, deauth, useDevices} from "./shared.ts";
+import Login from "./Login.vue";
 
 const { fetchData} = useDevices();
 
@@ -30,7 +29,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <el-container class="app-container">
+    <el-container v-if="authed" class="app-container">
       <el-header>
         <el-menu
             :default-active="activeIndex"
@@ -43,6 +42,9 @@ onMounted(() => {
           <el-menu-item v-for="page in pages" :index="page.path">
             {{ page.title }}
           </el-menu-item>
+          <el-menu-item @click="deauth()">
+            登出
+          </el-menu-item>
         </el-menu>
       </el-header>
 
@@ -51,6 +53,7 @@ onMounted(() => {
       </el-main>
 
     </el-container>
+    <Login v-else/>
 </template>
 
 <style scoped>
@@ -63,9 +66,4 @@ onMounted(() => {
 }
 
 /* 确保 el-main 能够独立滚动（如果内容很多） */
-.el-main {
-  padding: 20px;
-  overflow-y: auto;
-  flex: 1; /* 自动撑开剩余空间 */
-}
 </style>

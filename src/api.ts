@@ -1,4 +1,5 @@
 import axios from 'axios';
+import {deauth} from "./shared.ts";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -6,6 +7,34 @@ const api = axios.create({
     baseURL: baseURL,
     timeout: 6000,
 });
+
+// 请求拦截器：自动添加 token
+api.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+// 响应拦截器：处理 401 错误
+api.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    (error) => {
+        if (error.response?.status === 401)
+            deauth()
+        return Promise.reject(error);
+    }
+);
+
+export default api;
 
 // --- 类型定义 (与后端保持同步) ---
 export interface Tag {
